@@ -5,5 +5,6 @@ const connUrl = "mongodb://127.0.0.1:27017/quizee-manager-data";
 mongoose.connect(connUrl, {
     useNewUrlParser : true,
     useCreateIndex : true,
+    useFindAndModify : false,
     useUnifiedTopology: true
 })
