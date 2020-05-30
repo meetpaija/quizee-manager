@@ -29,7 +29,6 @@ authRouter.post("/login", async (req, res) => {
     res.status(200).send(setAccessTokenResponse(user, token));
     
   } catch (e) {
-    console.log(e);
     res.status(500).send(e);
   }
 });
@@ -38,7 +37,7 @@ authRouter.post("/signup", async (req, res) => {
   try {
     
     const user = new User(req.body);
-    
+
     const isUserExist = await User.isUserExist(req.body.email, req.body.password)
     
     if (isUserExist) {
@@ -48,7 +47,6 @@ authRouter.post("/signup", async (req, res) => {
     const token = await user.generateAuthToken();
     res.status(201).send(setAccessTokenResponse(user, token));
   } catch (e) {
-    console.log(e)
     res.status(500).send(setErrorResponse(e));
   }
 });
@@ -64,7 +62,6 @@ authRouter.post("/logout", auth, async (req, res) => {
     
     res.status(200).send(setSucessResponse());
   } catch (e) {
-    console.log(e);
     res.status(500).send(e);
   }
 });

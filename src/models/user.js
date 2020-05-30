@@ -31,11 +31,12 @@ let userSchema = new mongoose.Schema({
   },
 });
 
-userSchema.virtual('tokens', {
-  ref: 'Token',
-  localField: '_id',
-  foreignField: 'user',
-});
+// userSchema.virtual('tokens', {
+//   ref: 'Token',
+//   localField: '_id',
+//   foreignField: 'user',
+// });
+
 
 userSchema.plugin(timestamp);
 
@@ -52,46 +53,68 @@ userSchema.pre("save", async function (next) {
 });
 
 userSchema.methods.generateAuthToken = async function () {
-
+  
   const user = this;
-
+  
   const token = jsonwebtoken.sign(
     { _id: user._id.toString() },
     "Don'tShareThis"
-  );
-
-  if (token) {
-    const tokenModel = new TokenModel({ token, user: user._id });
-    await tokenModel.save();
+    );
+    
+    if (token) {
+      const tokenModel = new TokenModel({ token, user: user._id });
+      await tokenModel.save();
+    }
+    
+    return token;
+  };
+  
+  userSchema.statics.findByCredentials = async (emailOrUsername, password) => {
+    
+    const user = await User.isUserExist(emailOrUsername, emailOrUsername);
+    
+    if (!user) {
+      throw new Error("Invalid credentials");
+    }
+    
+    const isPwdMatch = await bcrypt.compare(password, user.password);
+    if (!isPwdMatch) {
+      throw new Error("Invalid credentials");
+    }
+    
+    return user;
+  };
+  
+  userSchema.statics.isUserExist = async (email, username) => {
+    const isUserExist = await User.findOne({
+      $or: [{ email } , { username }],
+    });
+    
+    return isUserExist;
   }
-
-  return token;
-};
-
-userSchema.statics.findByCredentials = async (emailOrUsername, password) => {
-
-  const user = await User.isUserExist(emailOrUsername, emailOrUsername);
-
-  if (!user) {
-    throw new Error("Invalid credentials");
-  }
-
-  const isPwdMatch = await bcrypt.compare(password, user.password);
-  if (!isPwdMatch) {
-    throw new Error("Invalid credentials");
-  }
-
-  return user;
-};
-
-userSchema.statics.isUserExist = async (email, username) => {
-  const isUserExist = await User.findOne({
-    $or: [{ email } , { username }],
+  
+  userSchema.virtual('results', {
+    ref: 'Result',
+    localField: '_id',
+    foreignField: 'user'
   });
 
-  return isUserExist;
-}
+  userSchema.virtual('quizzes', {
+    ref: 'Quiz',
+    localField: '_id',
+    foreignField: 'user'
+  });
 
-const User = mongoose.model("User", userSchema);
+  userSchema.virtual('questions', {
+    ref: 'Question',
+    localField: '_id',
+    foreignField: 'user'
+  });
 
-export default User;
+  userSchema.set('toObject', { virtuals: true });
+  userSchema.set('toJSON', { virtuals: true });
+
+  const User = mongoose.model("User", userSchema);
+  
+  export default User;
+  

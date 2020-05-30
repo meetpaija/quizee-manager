@@ -12,6 +12,54 @@ router.post(
   async (req, res) => await createQuiz(req, res)
 );
 
+router.get(
+  "/users/:userId/quizees/:quizId",
+  async (req, res) => await fetchQuiz(req, res)
+);
+
+router.get(
+  "/users/:userId/quizees",
+  async (req, res) => await fetchQuizzesByUser(req, res)
+);
+
+const fetchQuizzesByUser = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.userId);
+
+    if (!user) {
+      return res.status(404).setCustomErrorResponse("User not found");
+    }
+
+    await user.populate("quizzes").execPopulate();
+
+    res.status(200).send(setSucessResponse(user));
+  } catch (error) {
+    throw new Error(error);
+  }
+}
+
+const fetchQuiz = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.userId);
+
+    if (!user) {
+      return res.status(404).setCustomErrorResponse("User not found");
+    }
+
+    const quiz = await Quiz.findById(req.params.quizId);
+
+    if (!quiz) {
+      return res.status(404).setCustomErrorResponse("Quiz not found");
+    }
+
+    await quiz.populate("questions").execPopulate();
+
+    res.status(200).send(setSucessResponse(quiz));
+  } catch (error) {
+    throw new Error(error);
+  }
+};
+
 const createQuiz = async (req, res) => {
   try {
     const userId = req.params.id;
