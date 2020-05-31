@@ -111,6 +111,13 @@ userSchema.methods.generateAuthToken = async function () {
     foreignField: 'user'
   });
 
+  userSchema.methods.toJSON = function () {
+    const user = this
+    const userObject = user.toObject()
+    delete userObject.password
+    return userObject
+  }
+
   userSchema.set('toObject', { virtuals: true });
   userSchema.set('toJSON', { virtuals: true });
 

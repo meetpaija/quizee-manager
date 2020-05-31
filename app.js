@@ -15,7 +15,6 @@ app.listen(port, () => {
 });
 
 app.use(express.json());
-// app.user(auth)
 app.use("/api", auth, userRouter);
 app.use("/api", auth, quizRouter);
 app.use("/api", auth, resultRouter);
